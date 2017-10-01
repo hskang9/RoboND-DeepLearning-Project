@@ -34,6 +34,7 @@ import sys
 
 import numpy as np
 from scipy import misc
+from tqdm import  tqdm
 
 
 def make_dir_if_not_exist(path):
@@ -58,8 +59,10 @@ def move_labels(input_folder, output_folder, fold_id):
     output_folder = os.path.join(output_folder, 'masks')
     make_dir_if_not_exist(output_folder)
     cam2, cam3, cam4 = get_mask_files(files) 
+    
+    print("Moving labels,...")
 
-    for e,i in enumerate(cam2):
+    for e,i in enumerate(tqdm(cam2)):
         fname_parts = i.split(os.sep)
         cam2_base = str(fold_id) + '_' + fname_parts[-1]
 
@@ -81,7 +84,8 @@ def move_png_to_jpeg(input_folder, output_folder, fold_id):
     output_folder = os.path.join(output_folder, 'images')
     make_dir_if_not_exist(output_folder)
 
-    for i in cam1_files:
+    print("Moving to jpeg,...")
+    for i in tqdm(cam1_files):
         cam1 = misc.imread(i)
         fname_parts = i.split(os.sep)
         cam1_base = str(fold_id) + '_' +fname_parts[-3]+fname_parts[-1].split('.')[0] + '.jpeg'
@@ -93,21 +97,27 @@ def combine_masks(processed_folder):
     files = glob.glob(os.path.join(processed_mask_folder, '*.png'))
     cam2, cam3, cam4 = get_mask_files(files)
 
-    for e,i in enumerate(cam2):
+    print('Combining masks,..  : {}'.format(processed_folder))
+    for e,i in enumerate(tqdm(cam2)):
         im2 = misc.imread(i)[:,:,0]
         im3 = misc.imread(cam3[e])[:,:,0]
         im4 = misc.imread(cam4[e])[:,:,0]
+
+        # print("{} ::: {} ::: {} ".format(i, cam3[e], cam4[e]))
 
         stacked = np.stack((im4-1, im2, im3), 2)
         argmin = np.argmin(stacked, axis=-1)
         im = np.stack((argmin==0, argmin==1, argmin==2), 2)
 
         base_name = os.path.basename(i)
+        # os.path.
         ind = base_name.find('cam')
         new_fname = base_name[:ind] + '_mask'+ base_name[ind+4:]
+        # print("{} <--->  ".format(new_fname))
 
-        dir_base = str(os.sep).join(i.split('/')[:-1])
-        misc.imsave(os.path.join(dir_base, new_fname), im)
+        # dir_base = str(os.sep).join(i.split('/')[:-1])
+        misc.imsave(os.path.join(os.path.dirname(i), new_fname), im)
+        # print("{} <---> {} ".format(dir_base, os.path.join(dir_base, new_fname)))
         os.remove(i)
         os.remove(cam3[e])
         os.remove(cam4[e])
@@ -132,6 +142,8 @@ if __name__ == '__main__':
     raw_data = os.path.join('..', 'data', 'raw_sim_data')
     proc_data = os.path.join('..', 'data', 'processed_sim_data')
 
+    print("Collecting files,...")
+
     indicator_dict = get_im_data(raw_data) 
 
     out_val_dir = os.path.join(proc_data, 'validation')
@@ -139,6 +151,7 @@ if __name__ == '__main__':
 
     for e, i in enumerate(indicator_dict.items()):
         # no data in the folder so skip it
+        print("Running : {}".format(e))
         if not i[1][0]:
             continue
 
@@ -151,6 +164,6 @@ if __name__ == '__main__':
              move_png_to_jpeg(i[0], out_train_dir, e)
              move_labels(i[0], out_train_dir, e)
 
-
+    print("Going to Combine Masks")
     combine_masks(out_val_dir)
     combine_masks(out_train_dir)
