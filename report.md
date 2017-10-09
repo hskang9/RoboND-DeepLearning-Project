@@ -179,6 +179,8 @@ The following chart plots the above table, with horizontal axis specifying the d
 Finally, the learning curve for the last trained network is shown,    
 ![alt](./docs/misc/learn1.png)     
 
+The final model is saved as `data/weights/final_model.h5` and the corresponding config file, `data/weights/config_final_model`.    
+
 With the above model, the quad can now successfully `follow` the target.   
 [Here is the video in action](https://youtu.be/5CEIWJvnxw8)
 
