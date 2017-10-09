@@ -32,7 +32,7 @@ from glob import glob
 from scipy import misc
 
 import numpy as np
-from tensorflow.contrib.keras.python.keras.preprocessing.image import Iterator
+from tensorflow.contrib.keras.python.keras.preprocessing.image import Iterator, flip_axis
 from tensorflow.contrib.keras.python.keras import backend as K
 
 
@@ -41,6 +41,17 @@ def preprocess_input(x):
     x = x-0.5
     x = x*2.
     return x
+
+def random_flip(x, y):
+    if np.random.random() < 0.5:
+        # axis = 0
+        # x = np.asarray(x).swapaxes(axis, 0)
+        # x = x[::-1,...]
+        # x = x.swapaxes(0, axis)
+        x = np.fliplr(x)
+        y = np.fliplr(y)
+
+    return x, y
 
 def get_patches(image, image_mask):
     shape = image.shape
@@ -153,6 +164,9 @@ class BatchIteratorSimple(Iterator):
                 #    image, gt_image = shift_and_pad_augmentation(image, gt_image)
 
                 image = preprocess_input(image.astype(np.float32))
+
+                image, gt_image = random_flip(image, gt_image)
+
                 batch_x[e,:,:,:] = image
                 batch_y[e,:,:,:] = gt_image
 
