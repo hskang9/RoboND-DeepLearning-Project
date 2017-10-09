@@ -64,13 +64,13 @@ def move_labels(input_folder, output_folder, fold_id):
 
     for e,i in enumerate(tqdm(cam2)):
         fname_parts = i.split(os.sep)
-        cam2_base = str(fold_id) + '_' + fname_parts[-1]
+        cam2_base = str(fold_id) + '_' + fname_parts[-3]+fname_parts[-1]
 
         fname_parts = cam3[e].split(os.sep)
-        cam3_base = str(fold_id) + '_' + fname_parts[-1]
+        cam3_base = str(fold_id) + '_' + fname_parts[-3]+fname_parts[-1]
 
         fname_parts = cam4[e].split(os.sep)
-        cam4_base = str(fold_id) + '_' + fname_parts[-1]
+        cam4_base = str(fold_id) + '_' + fname_parts[-3]+fname_parts[-1]
 
         shutil.copy(i, os.path.join(output_folder,cam2_base))
         shutil.copy(cam3[e], os.path.join(output_folder,cam3_base))
@@ -112,11 +112,11 @@ def combine_masks(processed_folder):
         base_name = os.path.basename(i)
         # os.path.
         ind = base_name.find('cam')
-        new_fname = base_name[:ind] + '_mask'+ base_name[ind+4:]
+        new_fname = base_name[:ind] + 'mask'+ base_name[ind+4:]
         # print("{} <--->  ".format(new_fname))
 
-        # dir_base = str(os.sep).join(i.split('/')[:-1])
-        misc.imsave(os.path.join(os.path.dirname(i), new_fname), im)
+        dir_base = str(os.sep).join(i.split(str(os.sep))[:-1])
+        misc.imsave(os.path.join(dir_base, new_fname), im)
         # print("{} <---> {} ".format(dir_base, os.path.join(dir_base, new_fname)))
         os.remove(i)
         os.remove(cam3[e])
