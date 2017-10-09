@@ -108,3 +108,11 @@ RUNS/
 *.jpeg
 data/weights/*weights*
 data/logs
+data/processed_sim_data
+data/raw_sim_data
+data/sample_evaluation_data
+data/train
+data/train (1)
+data/train_curated
+data/validation
+*.html
