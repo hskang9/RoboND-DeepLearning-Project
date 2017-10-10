@@ -103,9 +103,9 @@ ENV/
 
 RUNS/
 
-*.zip
-*.png
-*.jpeg
+data/*.zip
+data/*.png
+data/*.jpeg
 data/weights/*weights*
 data/logs
 data/processed_sim_data

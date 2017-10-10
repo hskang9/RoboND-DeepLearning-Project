@@ -1,7 +1,7 @@
 ## Follow Me : Deep Learning Project
 ### Nitish Puri
 
-In this project, we train a deep neural network to identify and track a target in simulation. So-called “follow me” applications like this are key to many fields of robotics and the very same techniques you apply here could be extended to scenarios like advanced cruise control in autonomous vehicles or human-robot collaboration in industry.
+In this project, we train a deep neural network to identify and track a target in simulation. So-called “follow me” applications like this are key to many fields of robotics and the very same techniques we apply here could be extended to scenarios like advanced cruise control in autonomous vehicles or human-robot collaboration in industry.
 
 [image_0]: ./docs/misc/sim_screenshot.png
 ![alt text][image_0] 
@@ -15,10 +15,38 @@ The suggested network in the project is a Fully Convolutional Network(i.e. no de
 connected layers are present). Our network follows an Encoder/Decoder based architecture to 
 support pixel level classification instead of image-level classification.   
 
-First we discuss the various layer blocks used to build our network,
+First we discuss the various layer blocks used to build our network.
+
+#### 1 X 1 Convolutions
+![alt](./docs/misc/1x1conv.jpg)    
+
+1 X 1 Convolutions are essentially a *cheap* way of changing the depth/channel size of a tensor.
+It is also used in the *inception* architecture before different sized convolution blocks to reduce the number of learnable parameters.     
+There are different ways this layer can be interpreted.   
+
+* It does not take into account the spatial patterns/features i.e. preserves the spatial information without activating upon any features.
+* Instead it can be thought of as fitting to cross-channel correlation.
+* Mathematically they can be interpreted as multilayer perceptrons, i.e. a linear transformation per filter.   
+
+We use 1 X 1 convolutions in two places.   
+
+* One, as a part of the *separable convolutions* as *pointwise convolution* discussed later.
+* Second, in our middle layer as a way of increasing the *encoding* depth just before upsampling.
+
+#### Fully connected layers
+![alt](./docs/misc/fcl.png)    
+
+A fully connected layer basically means that every input(activation from the previous layer) 
+is connected to every output through a weight. This is also known as a Dense layer. These layers are the basis of a general vanilla neural network.   
+Our model does not use any fully connected layer, but they are generally used as final layers for a classification task when it might collect all the spatial information together just before answering the question.    
+
+Ideally, a network composed of only fully connected layers(or even a network composed of a single hidden fully connected layer with enough hidden neurons) can perform the same transformations as performed by the different types of layers and architectures we use, however training them might be extremely difficult as we would have no control over the *kind* of learning our network is doing i.e. how much our network is able to generalize and if there is any redundancy in the weights or if it is able to learn hierarchical information.
 
 #### Separable Convolutions
+![alt](./docs/misc/sepconv.jpg)    
+
 This technique is used for reducing the number of learnable parameters in the network, thus allowing us to build deeper networks, or help networks learn faster for a similar architecture.
+These form the basis of the *xception* architecture.    
 
 The way that works is by decoupling the *depthwise* and *spatial* information. More details can be found [here](https://medium.com/towards-data-science/types-of-convolutions-in-deep-learning-717013397f4d).
 
@@ -26,7 +54,7 @@ This is very helpful for deployment on mobile devices because of its efficient u
 
 #### Encoder Block
 We use the previously discussed *separable convolution* layers in the encoder block.    
-Every encoder block is composed os two *separable convolution* layers, each followed by a batch normalization layer. Here is the corresponding code,   
+Every encoder block is composed of two *separable convolution* layers, each followed by a batch normalization layer. Here is the corresponding code.
 ```python
 def encoder_block(input_layer, filters, strides):    
 
@@ -68,8 +96,9 @@ def decoder_block(small_ip_layer, large_ip_layer, filters):
 
 ![alt](./docs/misc/decoder.png)   
 
+
 #### FCN Architecture
-As discussed earlier, we use an encoder/decoder architecture for doing pixel level classification. Here is the high level structure of the final network,    
+As discussed earlier, we use an encoder/decoder architecture for doing pixel level classification. Here is the high level structure of the final network.    
 ![alt](./docs/misc/unet.png)   
 
 I am using a 5 layer deep encoder and correspondingly 5 layer deep decoder network.
@@ -113,7 +142,7 @@ Non-trainable params: 1,504
 As a preprocessing step, the boilerplate code already uses a normalized, zero mean input image using `preprocess_input` in `data_iterator.py`.   
 There is already an auxillary method available for data augmentation(`shift_and_pad_augmentation`), however it is not being used.   
 
-I added another function that randomly flips(horizontally) the input and mask image before while preparing a batch. This method was added in `data_iterator.py`.   
+I added another function that randomly flips(horizontally) the input and mask image while preparing a batch. This method was added in `data_iterator.py`.   
 ```python
 def random_flip(x, y):
     if np.random.random() < 0.5:     # Randomly flip the input half the time.
@@ -125,7 +154,7 @@ def random_flip(x, y):
 
 ### Hyperparameter tuning
 
-For training these are the various methods that I tried for tuning,   
+For training these are the various methods that I tried for tuning.   
 
 * `learning_rate` from 0.01 to 0.0001.
     Also tried retraining the model after reducing the learning rate after 30 epochs. The final
